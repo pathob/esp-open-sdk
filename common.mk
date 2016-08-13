@@ -19,9 +19,11 @@ endif
 # Placing $(PROGRAM_DIR) and $(PROGRAM_DIR)include first allows
 # programs to have their own copies of header config files for components
 # , which is useful for overriding things.
-INC_DIRS      := $(PROGRAM_DIR) $(PROGRAM_DIR)include $(INCS) $(ROOT)/sdk/include
+SRC_DIRS      := $(PROGRAM_DIR) $(EXTRA_SRCS)
+INC_DIRS      := $(PROGRAM_DIR) $(PROGRAM_DIR)include $(EXTRA_INCS) $(ROOT)/sdk/include
 LIB_DIRS      := $(ROOT)/sdk/lib
 
+SRC_ARGS      := $(addsuffix /**,$(SRC_DIRS))
 INC_ARGS      := $(addprefix -I,$(INC_DIRS))
 LIB_ARGS      := $(addprefix -L,$(LIB_DIRS))
 LIB_ARGS      += $(addprefix -l,$(LIBS))
@@ -75,19 +77,19 @@ all: $(FW_FILE_1) $(FW_FILE_2)
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
 # How to recursively find all files that match a pattern
-C_FILE        := $(call rwildcard,./**,*.c)
-CPP_FILE      := $(call rwildcard,./**,*.cpp)
+C_FILE        := $(foreach src, $(SRC_ARGS), $(call rwildcard, $(subst //,/,$(src)),*.c))
+CPP_FILE      := $(foreach src, $(SRC_ARGS), $(call rwildcard, $(subst //,/,$(src)),*.cpp))
 # strip leading "./" from source files
 C_SOURCE      := $(C_FILE:./%=%)
 CPP_SOURCE    := $(CPP_FILE:./%=%)
 # add prefix of build dir
-C_OBJECT      := $(addprefix $(BUILD_DIR)/,$(C_SOURCE:%.c=%.o))
-CPP_OBJECT    := $(addprefix $(BUILD_DIR)/,$(CPP_SOURCE:%.cpp=%.o))
+C_OBJECT      := $(foreach obj, $(addprefix $(BUILD_DIR)/,$(C_SOURCE:%.c=%.o)), $(subst //,/,$(obj)))
+CPP_OBJECT    := $(foreach obj, $(addprefix $(BUILD_DIR)/,$(CPP_SOURCE:%.cpp=%.o)), $(subst //,/,$(obj)))
 
 define compile
 SRC = $(1)
 # replace source file extension by object file extension
-OBJ = $(addprefix $(BUILD_DIR)/,$(1:%.c=%.o))
+OBJ = $(subst //,/,$(addprefix $(BUILD_DIR)/,$(1:%.c=%.o)))
 $$(OBJ): $$(SRC)
 	$$(vecho) "$(2) $$@"
 	$$(Q) mkdir -p $$(dir $$@)

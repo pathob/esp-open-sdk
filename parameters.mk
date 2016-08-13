@@ -1,18 +1,17 @@
 # This file is originally inspired by the esp-open-rtos project 
-#
 
 -include $(ROOT)local.mk
 -include local.mk
 
 # Flash size in megabits
-# Valid values are same as for esptool.py - 2,4,8,16,32
-FLASH_SIZE    ?= 16
+# Valid values are same as for esptool.py - 2m,4m,8m,16m,32m,...
+FLASH_SIZE    ?= 8m
 
 # Flash mode, valid values are same as for esptool.py - qio,qout,dio.dout
-FLASH_MODE    ?= qio
+FLASH_MODE    ?= dio
 
-# Flash speed in MHz, valid values are same as for esptool.py - 80, 40, 26, 20
-FLASH_SPEED   ?= 40
+# Flash speed in MHz, valid values are same as for esptool.py - 80m, 40m, 26m, 20m
+FLASH_SPEED   ?= 40m
 
 # Output directories to store intermediate compiled files
 # relative to the program directory
@@ -22,11 +21,10 @@ FIRMWARE_DIR  ?= $(PROGRAM_DIR)/firmware
 # esptool.py from https://github.com/themadinventor/esptool
 ESPTOOL       ?= esptool.py
 # serial port settings for esptool.py
-ESPPORT       ?= /dev/ttyUSB0
 ESPBAUD       ?= 115200
+ESPPORT       ?= /dev/ttyUSB0
 
-# firmware tool arguments
-ESPTOOL_ARGS  = -fs $(FLASH_SIZE)m -fm $(FLASH_MODE) -ff $(FLASH_SPEED)m
+ESPTOOL_ARGS  = -fs $(FLASH_SIZE) -fm $(FLASH_MODE) -ff $(FLASH_SPEED)
 
 # Compiler names, etc. assume gdb
 CROSS         ?= xtensa-lx106-elf-
@@ -46,5 +44,7 @@ LIBS          ?= hal gcc c
 SDK_LIBS      ?= json main net80211 lwip phy pp pwm ssl upgrade wpa
 
 LD_SCRIPTS    ?= $(ROOT)/sdk/ld/eagle.app.v6.ld
+
+EXTRA_INCS    ?= $(addsuffix /include, $(EXTRA_SRCS))
 
 # V ?= 0
