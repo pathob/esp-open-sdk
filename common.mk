@@ -83,13 +83,13 @@ CPP_FILE      := $(foreach src, $(SRC_ARGS), $(call rwildcard, $(subst //,/,$(sr
 C_SOURCE      := $(C_FILE:./%=%)
 CPP_SOURCE    := $(CPP_FILE:./%=%)
 # add prefix of build dir
-C_OBJECT      := $(foreach obj, $(addprefix $(BUILD_DIR)/,$(C_SOURCE:%.c=%.o)), $(subst //,/,$(obj)))
-CPP_OBJECT    := $(foreach obj, $(addprefix $(BUILD_DIR)/,$(CPP_SOURCE:%.cpp=%.o)), $(subst //,/,$(obj)))
+C_OBJECT      := $(foreach obj, $(addprefix $(BUILD_DIR)/,$(C_SOURCE:%.c=%.o)), $(subst //,/, $(subst $(ROOT),,$(obj))))
+CPP_OBJECT    := $(foreach obj, $(addprefix $(BUILD_DIR)/,$(CPP_SOURCE:%.cpp=%.o)), $(subst //,/, $(subst $(ROOT),,$(obj))))
 
 define compile
 SRC = $(1)
 # replace source file extension by object file extension
-OBJ = $(subst //,/,$(addprefix $(BUILD_DIR)/,$(1:%.c=%.o)))
+OBJ = $(subst //,/,$(addprefix $(BUILD_DIR)/,$(subst $(ROOT),,$(1:%.c=%.o))))
 $$(OBJ): $$(SRC)
 	$$(vecho) "$(2) $$@"
 	$$(Q) mkdir -p $$(dir $$@)
