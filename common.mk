@@ -80,21 +80,21 @@ rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 C_FILE        := $(foreach src, $(SRC_ARGS), $(call rwildcard, $(subst //,/,$(src)),*.c))
 CPP_FILE      := $(foreach src, $(SRC_ARGS), $(call rwildcard, $(subst //,/,$(src)),*.cpp))
 # strip leading "./" from source files
-C_SOURCE      := $(C_FILE:./%=%)
-CPP_SOURCE    := $(CPP_FILE:./%=%)
-# add prefix of build dir
-C_OBJECT      := $(foreach obj, $(addprefix $(BUILD_DIR)/,$(C_SOURCE:%.c=%.o)), $(subst //,/, $(subst $(ROOT),,$(obj))))
-CPP_OBJECT    := $(foreach obj, $(addprefix $(BUILD_DIR)/,$(CPP_SOURCE:%.cpp=%.o)), $(subst //,/, $(subst $(ROOT),,$(obj))))
+C_SOURCE      := $(patsubst ./%,%,$(C_FILE))
+CPP_SOURCE    := $(patsubst ./%,%,$(CPP_FILE))
+# add prefix of build dir and remove double slashes from path
+C_OBJECT      := $(foreach obj, $(addprefix $(BUILD_DIR)/,$(patsubst %.c,%.o,$(C_SOURCE))), $(subst //,/, $(subst $(ROOT),,$(obj))))
+CPP_OBJECT    := $(foreach obj, $(addprefix $(BUILD_DIR)/,$(patsubst %.cpp,%.o,$(CPP_SOURCE))), $(subst //,/, $(subst $(ROOT),,$(obj))))
 
 define compile
 SRC = $(1)
 # replace source file extension by object file extension
-OBJ = $(subst //,/,$(addprefix $(BUILD_DIR)/,$(subst $(ROOT),,$(1:%.c=%.o))))
+OBJ = $(subst //,/,$(addprefix $(BUILD_DIR)/,$(subst $(ROOT),,$(patsubst %.c,%.o,$1))))
 $$(OBJ): $$(SRC)
 	$$(vecho) "$(2) $$@"
 	$$(Q) mkdir -p $$(dir $$@)
 	$$(Q) $$($(2)) $$(CFLAGS) -c $$< -o $$@
-	$$(Q) $$($(2)) $$(CFLAGS) -MM -MT $$@ -MF $$(@:.o=.d) $$<
+	$$(Q) $$($(2)) $$(CFLAGS) -MM -MT $$@ -MF $$(patsubst %.o,%.d,$$@) $$<
 endef
 
 $(foreach src,$(C_SOURCE),$(eval $(call compile,$(src),CC)))
